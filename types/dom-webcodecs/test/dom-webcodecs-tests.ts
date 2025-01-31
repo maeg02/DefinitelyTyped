@@ -26,7 +26,7 @@ function genericCodec(codec: AudioDecoder | AudioEncoder | VideoDecoder | VideoE
     codec.close();
 }
 
-function errorCallback(error: DOMException): void { }
+function errorCallback(error: DOMException): void {}
 
 //////////////////////////////////////////////////
 // audio-decoder.any.js
@@ -73,9 +73,9 @@ AudioDecoder.isConfigSupported({
 });
 
 AudioDecoder.isConfigSupported(audioDecoderConfig).then((result: AudioDecoderSupport) => {
-    // $ExpectType boolean
+    // $ExpectType boolean | undefined
     result.supported;
-    // $ExpectType AudioDecoderConfig
+    // $ExpectType AudioDecoderConfig | undefined
     result.config;
 });
 
@@ -128,6 +128,11 @@ AudioDecoder.isConfigSupported(futureAudioDecoderConfig);
 // $ExpectType void
 audioDecoder.configure(futureAudioDecoderConfig);
 
+audioDecoder.ondequeue = () => "";
+
+// $ExpectType void
+audioDecoder.addEventListener("dequeue", (e) => e, { once: true });
+
 genericCodec(audioDecoder);
 
 //////////////////////////////////////////////////
@@ -169,9 +174,9 @@ AudioEncoder.isConfigSupported({
 });
 
 AudioEncoder.isConfigSupported(audioEncoderConfig).then((result: AudioEncoderSupport) => {
-    // $ExpectType boolean
+    // $ExpectType boolean | undefined
     result.supported;
-    // $ExpectType AudioEncoderConfig
+    // $ExpectType AudioEncoderConfig | undefined
     result.config;
 });
 
@@ -222,6 +227,9 @@ audioEncoder.configure(futureAudioEncoderConfig);
 
 // $ExpectType void
 audioEncoder.encode(audioFrame);
+
+// $ExpectType void
+audioEncoder.addEventListener("dequeue", (e) => e, { once: true });
 
 // $ExpectType void
 audioFrame.close();
@@ -362,9 +370,9 @@ VideoDecoder.isConfigSupported();
 VideoDecoder.isConfigSupported({ description: new Uint8Array(0) });
 
 VideoDecoder.isConfigSupported(videoDecoderConfig).then((result: VideoDecoderSupport) => {
-    // $ExpectType boolean
+    // $ExpectType boolean | undefined
     result.supported;
-    // $ExpectType VideoDecoderConfig
+    // $ExpectType VideoDecoderConfig | undefined
     result.config;
 });
 
@@ -377,7 +385,7 @@ function videoOutput(output: VideoFrame): void {
     output.displayWidth;
     // $ExpectType number
     output.displayHeight;
-    // $ExpectType number | null
+    // $ExpectType number
     output.timestamp;
     // $ExpectType void
     output.close();
@@ -423,6 +431,9 @@ VideoDecoder.isConfigSupported(futureVideoDecoderConfig);
 videoDecoder.configure(futureVideoDecoderConfig);
 
 genericCodec(videoDecoder);
+
+// $ExpectType void
+videoDecoder.addEventListener("dequeue", () => {}, { once: true });
 
 // $ExpectType void
 videoDecoder.decode(encodedVideoChunk);
@@ -481,9 +492,9 @@ VideoEncoder.isConfigSupported({
 });
 
 VideoEncoder.isConfigSupported(videoEncoderConfig).then((result: VideoEncoderSupport) => {
-    // $ExpectType boolean
+    // $ExpectType boolean | undefined
     result.supported;
-    // $ExpectType VideoEncoderConfig
+    // $ExpectType VideoEncoderConfig | undefined
     result.config;
 });
 
@@ -502,8 +513,8 @@ VideoEncoder.isConfigSupported(futureVideoEncoderConfig);
 
 const videoFrame = new VideoFrame(imageBitmap, { timestamp: 1000000 });
 
-function encodedVideoOutput(output: EncodedVideoChunk, metadata: EncodedVideoChunkMetadata): void {
-    if (metadata.decoderConfig !== undefined) {
+function encodedVideoOutput(output: EncodedVideoChunk, metadata?: EncodedVideoChunkMetadata): void {
+    if (metadata?.decoderConfig !== undefined) {
         videoDecoder.configure(metadata.decoderConfig);
     }
     videoDecoder.decode(output);
@@ -545,6 +556,9 @@ videoEncoder.configure(futureVideoEncoderConfig);
 videoEncoder.encodeQueueSize;
 
 // $ExpectType void
+videoEncoder.addEventListener("dequeue", () => {}, { once: true });
+
+// $ExpectType void
 videoEncoder.encode(videoFrame);
 
 // $ExpectType Promise<void>
@@ -563,7 +577,7 @@ videoFrame.close();
 //////////////////////////////////////////////////
 // video-frame.any.js
 
-// $ExpectType number | null
+// $ExpectType number
 videoFrame.timestamp;
 // $ExpectType number | null
 videoFrame.duration;
@@ -599,7 +613,7 @@ new VideoFrame(new ArrayBuffer(1024), {
 });
 
 const videoFramePlaneInit: VideoFrameBufferInit = {
-    format: 'BGRA',
+    format: "BGRA",
     timestamp: 1234,
     codedWidth: 4,
     codedHeight: 2,
@@ -608,7 +622,7 @@ const videoFramePlaneInit: VideoFrameBufferInit = {
 new VideoFrame(new ArrayBuffer(1024), videoFramePlaneInit);
 
 new VideoFrame(new ArrayBuffer(1024), {
-    format: 'BGRA',
+    format: "BGRA",
     timestamp: 1234,
     duration: 4321,
     codedWidth: 4,

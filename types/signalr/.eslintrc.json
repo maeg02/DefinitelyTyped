@@ -1,6 +1,8 @@
 {
     "rules": {
-        "no-const-enum": "off",
-        "dt-header": "off"
+        "@definitelytyped/no-const-enum": "off",
+        "@typescript-eslint/no-unsafe-function-type": "off",
+        "@typescript-eslint/no-wrapper-object-types": "off",
+        "@typescript-eslint/naming-convention": "off"
     }
 }

@@ -1,47 +1,29 @@
 import {
-    performance,
-    monitorEventLoopDelay,
-    PerformanceObserverCallback,
-    PerformanceObserver,
-    PerformanceEntry,
-    EntryType,
     constants,
-    EventLoopUtilization,
-    IntervalHistogram,
-    RecordableHistogram,
     createHistogram,
+    EntryType,
+    IntervalHistogram,
+    monitorEventLoopDelay,
     NodeGCPerformanceDetail,
-    PerformanceMeasure,
+    performance as NodePerf,
+    PerformanceEntry,
     PerformanceMark,
-} from 'node:perf_hooks';
+    PerformanceObserver,
+    PerformanceObserverCallback,
+    RecordableHistogram,
+} from "node:perf_hooks";
 
-const startMark: PerformanceMark = performance.mark('start');
+// Test module import once, the rest use global
+const startMark: PerformanceMark = NodePerf.mark("start");
 (() => {})();
-performance.mark('end');
+performance.mark("end");
 
-performance.mark('test', {
-    detail: 'something',
+performance.mark("test", {
+    detail: "something",
     startTime: 123,
 });
 
-performance.measure('test', {
-    detail: 'something',
-    duration: 123,
-    start: startMark.name,
-    end: 'endMark',
-});
-
-performance.measure('test', {
-    detail: 'something',
-    duration: 123,
-    start: 123,
-    end: 456,
-});
-
-const measure1: PerformanceMeasure = performance.measure('name', startMark.name, 'endMark');
-measure1.toJSON();
-performance.measure('name', startMark.name);
-performance.measure('name');
+performance.measure("name", startMark.name, "endMark");
 
 const timeOrigin: number = performance.timeOrigin;
 
@@ -64,11 +46,11 @@ const performanceObserverCallback: PerformanceObserverCallback = (list, obs) => 
 };
 const obs = new PerformanceObserver(performanceObserverCallback);
 obs.observe({
-    entryTypes: ['gc'],
+    entryTypes: ["gc"],
     buffered: true,
 });
 obs.observe({
-    type: 'gc',
+    type: "gc",
     buffered: true,
 });
 
@@ -87,10 +69,6 @@ const max: number = monitor.max;
 const mean: number = monitor.mean;
 const stddev: number = monitor.stddev;
 const exceeds: number = monitor.exceeds;
-
-const eventLoopUtilization1: EventLoopUtilization = performance.eventLoopUtilization();
-const eventLoopUtilization2: EventLoopUtilization = performance.eventLoopUtilization(eventLoopUtilization1);
-const eventLoopUtilization3: EventLoopUtilization = performance.eventLoopUtilization(eventLoopUtilization2, eventLoopUtilization1);
 
 let histogram: RecordableHistogram = createHistogram({
     figures: 123,
@@ -139,9 +117,51 @@ performance.clearMarks("test");
 performance.clearMeasures();
 performance.clearMeasures("test");
 
-performance.getEntries(); // $ExpectType PerformanceEntry[]
+performance.getEntries()[0]; // $ExpectType PerformanceEntry
 
-performance.getEntriesByName("test"); // $ExpectType PerformanceEntry[]
-performance.getEntriesByName("test", "mark"); // $ExpectType PerformanceEntry[]
+performance.getEntriesByName("test")[0]; // $ExpectType PerformanceEntry
+performance.getEntriesByName("test", "mark")[0]; // $ExpectType PerformanceEntry
 
-performance.getEntriesByType("mark"); // $ExpectType PerformanceEntry[]
+performance.getEntriesByType("mark")[0]; // $ExpectType PerformanceEntry
+
+const resource = NodePerf.markResourceTiming(
+    {
+        startTime: 0,
+        endTime: 0,
+        finalServiceWorkerStartTime: 0,
+        redirectStartTime: 0,
+        redirectEndTime: 0,
+        postRedirectStartTime: 0,
+        finalConnectionTimingInfo: {
+            domainLookupStartTime: 0,
+            domainLookupEndTime: 0,
+            connectionStartTime: 0,
+            connectionEndTime: 0,
+            secureConnectionStartTime: 0,
+            ALPNNegotiatedProtocol: "",
+        },
+        finalNetworkRequestStartTime: 0,
+        finalNetworkResponseStartTime: 0,
+        encodedBodySize: 0,
+        decodedBodySize: 0,
+    },
+    "https://nodejs.org",
+    "",
+    global,
+    "",
+    {},
+    200,
+    "",
+);
+resource; // $ExpectType PerformanceResourceTiming
+
+{
+    const { nodeTiming } = NodePerf;
+
+    // $ExpectType UVMetrics
+    const uvMetrics = nodeTiming.uvMetricsInfo;
+
+    uvMetrics.loopCount; // $ExpectType number
+    uvMetrics.events; // $ExpectType number
+    uvMetrics.eventsWaiting; // $ExpectType number
+}
